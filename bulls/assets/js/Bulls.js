@@ -1,26 +1,35 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import random from "lodash/random";
+
+import { ch_join, ch_push } from './socket';
 
 function App() {
   const [state, setState] = useState({
     secret: getRandAns(),
     guesses: []
-  })
+  });
 
   const [text, setText] = useState("");
   const [warning, setWarning] = useState("");
-  
+
   let {secret, guesses} = state;
 
+  let view = secret.split('');
   let lives = lives_left(secret, guesses);
   let bulls = bullsAndCows(secret, guesses);
 
+  useEffect(() => {
+    ch_join(setState);
+  });
+
+
   function updateText(ev) {
     let vv = ev.target.value;
-    setText(vv);
+    ch_push({number: text});
+    //setText(vv);
   }
 
-  function makeGuesses(arr) { 
+  function makeGuesses(arr) {
     let guesses = arr;
     let state1 = Object.assign({}, state, {guesses});
     setState(state1);
@@ -28,40 +37,40 @@ function App() {
 
   function getRandAns() {
     let numArr = [0,1,2,3,4,5,6,7,8,9];
-    let one = 0; 
-    let two = 0; 
-    let three = 0; 
+    let one = 0;
+    let two = 0;
+    let three = 0;
     let four = 0;
     let num = "";
-    let ind = random(1,9); 
+    let ind = random(1,9);
     one = numArr[ind];
-    numArr.splice(ind, 1); 
-    ind = random(0,8); 
-    two = numArr[ind]; 
-    numArr.splice(ind, 1); 
-    ind = random(0,7); 
+    numArr.splice(ind, 1);
+    ind = random(0,8);
+    two = numArr[ind];
+    numArr.splice(ind, 1);
+    ind = random(0,7);
     three = numArr[ind];
-    numArr.splice(ind, 1); 
-    ind = random(0,6); 
+    numArr.splice(ind, 1);
+    ind = random(0,6);
     four = numArr[ind];
-    num = one.toString() + two.toString() 
+    num = one.toString() + two.toString()
             + three.toString() + four.toString();
     return num;
   }
 
   function guess() {
     let array = [];
-    if (text.length !== 4) { 
-      setWarning("guess needs to be 4 characters"); 
-    } else if (!cancelLetters(text)) { 
-      setWarning("guess has to be numbers"); 
+    if (text.length !== 4) {
+      setWarning("guess needs to be 4 characters");
+    } else if (!cancelLetters(text)) {
+      setWarning("guess has to be numbers");
     }
     else if (text.charAt(0) === text.charAt(1) ||
-              text.charAt(0) === text.charAt(2) || 
-              text.charAt(0) === text.charAt(3) || 
-              text.charAt(1) === text.charAt(2) || 
-              text.charAt(1) === text.charAt(3) || 
-              text.charAt(2) === text.charAt(3)) { 
+              text.charAt(0) === text.charAt(2) ||
+              text.charAt(0) === text.charAt(3) ||
+              text.charAt(1) === text.charAt(2) ||
+              text.charAt(1) === text.charAt(3) ||
+              text.charAt(2) === text.charAt(3)) {
       setWarning("guess must not have repeats");
     }
     else {
@@ -72,11 +81,11 @@ function App() {
     document.getElementById('guessInput').value = "";
   }
 
-function cancelLetters(guess) { 
+function cancelLetters(guess) {
   let arr = guess.split("").slice(0,4);
   let noLett = true; //boolean true
-  for (let i = 0; i < arr.length; i++) { 
-    if(!(arr[i] <= '9' && arr[i] >= '0')) { 
+  for (let i = 0; i < arr.length; i++) {
+    if(!(arr[i] <= '9' && arr[i] >= '0')) {
       noLett = false;
     }
   }
@@ -99,7 +108,7 @@ function keyPress(ev) {
       let bulls = 0;
       let cows = 0;
       let returnBC = "";
-  
+
       for (let i = 0; i < 4; i++) {
         if (currArray[i] === correctNum[i]) {
           bulls = bulls + 1;
@@ -149,7 +158,7 @@ function keyPress(ev) {
       <h1>Bulls and Cows Game!</h1>
       <div>
         <table>
-            
+
           <tr>
                 <th>guess</th>
                 <th>result</th>
@@ -159,63 +168,63 @@ function keyPress(ev) {
             <td>{guesses[0]}</td>
             <td></td>
             <td>{bulls[0]}</td>
-              
+
           </tr>
-            
+
           <tr>
             <td>2</td>
             <td>{guesses[1]}</td>
             <td></td>
             <td>{bulls[1]}</td>
-              
+
           </tr>
-            
+
           <tr>
             <td>3</td>
             <td>{guesses[2]}</td>
             <td></td>
             <td>{bulls[2]}</td>
-              
+
           </tr>
-            
+
           <tr>
           <td>4</td>
             <td>{guesses[3]}</td>
             <td></td>
             <td>{bulls[3]}</td>
-              
+
           </tr>
-            
+
           <tr>
             <td>5</td>
             <td>{guesses[4]}</td>
             <td></td>
             <td>{bulls[4]}</td>
-              
+
           </tr>
-            
+
           <tr>
             <td>6</td>
             <td>{guesses[5]}</td>
             <td></td>
             <td>{bulls[5]}</td>
-              
+
           </tr>
-            
+
           <tr>
             <td>7</td>
             <td>{guesses[6]}</td>
             <td></td>
             <td>{bulls[6]}</td>
-              
+
           </tr>
-            
+
           <tr>
             <td>8</td>
             <td>{guesses[7]}</td>
             <td></td>
             <td>{bulls[7]}</td>
-              
+
           </tr>
         </table>
       </div>
@@ -241,7 +250,7 @@ function keyPress(ev) {
   );
 }
 
-function reloadGame() { 
+function reloadGame() {
   window.location.reload();
 }
 
@@ -250,5 +259,4 @@ function lives_left(secret, guesses) {
   return 8 - guesses.length;
 }
 
-export default App;
-
+export default Bulls;
